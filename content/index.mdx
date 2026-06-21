@@ -1,0 +1,55 @@
+---
+title: Introduction
+description: Add Orbi — the passkey-secured Stellar wallet — to your dApp in minutes.
+---
+
+import { Cards } from 'nextra/components'
+
+# Orbi Docs
+
+**Orbi** is a self-custodial Stellar wallet that users sign into with a
+**passkey** — no seed phrase, no browser extension, no password. The
+[`@orbi-wallet/sdk`](https://npmjs.com/package/@orbi-wallet/sdk) package lets you
+offer Orbi as a wallet option inside your own dApp: your users connect with Face
+ID / Touch ID and approve transactions with the same biometric prompt.
+
+```bash npm2yarn
+npm install @orbi-wallet/sdk
+```
+
+```ts
+import { OrbiClient } from '@orbi-wallet/sdk'
+
+const orbi = new OrbiClient({ network: 'mainnet' })
+
+// 1. User signs in with their passkey
+await orbi.connect()
+const address = orbi.getAddress()
+
+// 2. You build a Stellar transaction, Orbi gets it approved & signed
+const { signedXdr } = await orbi.signTransaction({
+  xdr,
+  walletAddress: address,
+})
+
+// 3. You submit signedXdr to the network
+```
+
+## What you get
+
+- **Passkey sign-in** — WebAuthn under the hood, backed up by iCloud Keychain or
+  Google Password Manager. No phrases for your users to lose.
+- **Biometric approval** — every transaction is confirmed with Face ID / Touch ID
+  in an Orbi-hosted prompt. Keys never enter your dApp.
+- **Self-custodial** — Orbi accounts are standard Stellar accounts. You never
+  custody funds, and neither does Orbi.
+- **Tiny footprint** — one client-side package. No backend, no API key.
+
+## Next steps
+
+<Cards>
+  <Cards.Card title="Getting Started" href="/getting-started" />
+  <Cards.Card title="Core Concepts" href="/concepts" />
+  <Cards.Card title="API Reference" href="/api-reference" />
+  <Cards.Card title="Guides" href="/guides/send-a-payment" />
+</Cards>

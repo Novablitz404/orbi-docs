@@ -1,0 +1,64 @@
+---
+title: Add a Connect Button
+description: A minimal React connect/disconnect button backed by Orbi.
+---
+
+import { Callout } from 'nextra/components'
+
+# Add a Connect Button
+
+A small React example that connects with Orbi, shows the address, and signs out.
+
+<Callout type="info">
+  `OrbiClient` is client-side. In Next.js App Router, put this in a component
+  marked `'use client'`.
+</Callout>
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { OrbiClient } from '@orbi-wallet/sdk'
+
+const orbi = new OrbiClient({ network: 'mainnet' })
+
+export function ConnectButton() {
+  const [address, setAddress] = useState<string | null>(orbi.getAddress())
+  const [busy, setBusy] = useState(false)
+
+  async function connect() {
+    setBusy(true)
+    try {
+      await orbi.connect()
+      setAddress(orbi.getAddress())
+    } catch {
+      // user cancelled the passkey prompt
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function disconnect() {
+    orbi.disconnect()
+    setAddress(null)
+  }
+
+  if (address) {
+    return (
+      <button onClick={disconnect}>
+        {address.slice(0, 4)}…{address.slice(-4)} · Sign out
+      </button>
+    )
+  }
+
+  return (
+    <button onClick={connect} disabled={busy}>
+      {busy ? 'Connecting…' : 'Connect Orbi'}
+    </button>
+  )
+}
+```
+
+From here, use `address` to load balances from Horizon and
+[`signTransaction()`](/api-reference/sign-transaction) to send funds — see
+[Send a payment](/guides/send-a-payment).

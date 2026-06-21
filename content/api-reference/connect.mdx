@@ -1,0 +1,52 @@
+---
+title: connect()
+description: Run the Orbi passkey flow and connect a wallet.
+---
+
+import { Callout } from 'nextra/components'
+
+# connect()
+
+Opens Orbi's passkey flow so the user can sign in to an existing wallet or create
+a new one. Resolves once a wallet is connected.
+
+```ts
+connect(): Promise<void>
+```
+
+## Returns
+
+`Promise<void>` — resolves when the user has connected. Read the resulting
+address with [`getAddress()`](/api-reference/get-address).
+
+## Example
+
+```ts
+const orbi = new OrbiClient({ network: 'mainnet' })
+
+await orbi.connect()
+const address = orbi.getAddress()
+
+if (address) {
+  console.log('Connected as', address)
+}
+```
+
+<Callout type="warning">
+  `connect()` opens a passkey prompt, so it must be triggered by a user gesture
+  (e.g. a button click). Calling it on page load may be blocked by the browser.
+</Callout>
+
+## Errors
+
+The promise rejects if the user dismisses the passkey prompt or the flow is
+cancelled. Wrap the call in `try/catch` and leave the user on your "connect"
+state if it throws.
+
+```ts
+try {
+  await orbi.connect()
+} catch {
+  // user cancelled — keep showing the Connect button
+}
+```

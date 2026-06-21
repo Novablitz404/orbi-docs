@@ -1,0 +1,118 @@
+---
+title: Getting Started
+description: Install the Orbi SDK and wire up your first passkey sign-in and signed transaction.
+---
+
+import { Steps, Callout } from 'nextra/components'
+
+# Getting Started
+
+This guide takes you from an empty project to a working passkey sign-in and a
+signed Stellar transaction.
+
+## Install
+
+```bash npm2yarn
+npm install @orbi-wallet/sdk
+```
+
+Orbi builds transactions in standard Stellar XDR, so you'll usually pair it with
+the Stellar SDK to construct those transactions:
+
+```bash npm2yarn
+npm install @stellar/stellar-sdk
+```
+
+<Callout type="info">
+  The SDK is **client-side only** — `OrbiClient` opens the Orbi passkey UI in the
+  browser. Instantiate and call it from client components, not from server code.
+</Callout>
+
+## Quickstart
+
+<Steps>
+
+### Create a client
+
+Point the client at the network you want. Use `'testnet'` while developing and
+`'mainnet'` in production.
+
+```ts
+import { OrbiClient } from '@orbi-wallet/sdk'
+
+const orbi = new OrbiClient({ network: 'testnet' })
+```
+
+### Connect the user
+
+`connect()` opens Orbi's passkey flow. The user signs in (or creates a wallet on
+the spot), and you read their Stellar address.
+
+```ts
+await orbi.connect()
+
+const address = orbi.getAddress() // "G..." once connected
+```
+
+### Build a transaction
+
+Construct any Stellar transaction as XDR. Here's a 10 XLM payment built with the
+Stellar SDK:
+
+```ts
+import {
+  TransactionBuilder,
+  Networks,
+  Operation,
+  Asset,
+  BASE_FEE,
+} from '@stellar/stellar-sdk'
+
+const server = new Horizon.Server('https://horizon-testnet.stellar.org')
+const account = await server.loadAccount(address)
+
+const tx = new TransactionBuilder(account, {
+  fee: BASE_FEE,
+  networkPassphrase: Networks.TESTNET,
+})
+  .addOperation(
+    Operation.payment({
+      destination: 'GDESTINATION...',
+      asset: Asset.native(),
+      amount: '10',
+    }),
+  )
+  .setTimeout(180)
+  .build()
+```
+
+### Get it signed
+
+Hand the XDR to Orbi. The user approves with Face ID / Touch ID, and you get the
+signed XDR back.
+
+```ts
+const { signedXdr } = await orbi.signTransaction({
+  xdr: tx.toXDR(),
+  walletAddress: address,
+})
+```
+
+### Submit it
+
+Submitting is up to you — Orbi only signs. Post the signed XDR straight to
+Horizon:
+
+```ts
+const signed = TransactionBuilder.fromXDR(signedXdr, Networks.TESTNET)
+const result = await server.submitTransaction(signed)
+console.log('Confirmed:', result.hash)
+```
+
+</Steps>
+
+## Where to go next
+
+- [Core Concepts](/concepts) — passkeys, accounts, and the signing model.
+- [API Reference](/api-reference) — every method on `OrbiClient`.
+- [Send a payment](/guides/send-a-payment) — the full flow end to end.

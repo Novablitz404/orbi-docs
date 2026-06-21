@@ -1,0 +1,35 @@
+---
+title: getAddress()
+description: Read the connected wallet's Stellar address.
+---
+
+# getAddress()
+
+Returns the connected wallet's Stellar address, or `null` if no wallet is
+connected yet.
+
+```ts
+getAddress(): string | null
+```
+
+## Returns
+
+- A Stellar public key (`"G..."`) when a wallet is connected.
+- `null` before [`connect()`](/api-reference/connect) has completed, or after
+  [`disconnect()`](/api-reference/disconnect).
+
+`getAddress()` is synchronous — it reads the already-connected session and does
+not open a prompt, so it's safe to call on render to decide whether to show a
+connected or disconnected state.
+
+## Example
+
+```ts
+const address = orbi.getAddress()
+
+if (address) {
+  // show the dashboard for `address`
+} else {
+  // show the Connect button
+}
+```

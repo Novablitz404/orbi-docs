@@ -1,0 +1,52 @@
+---
+title: OrbiClient
+description: The single entry point to the Orbi SDK.
+---
+
+# OrbiClient
+
+`OrbiClient` is the entry point to the SDK. Create one instance, scoped to a
+network, and reuse it across your app.
+
+```ts
+import { OrbiClient } from '@orbi-wallet/sdk'
+
+const orbi = new OrbiClient({ network: 'mainnet' })
+```
+
+## Constructor
+
+```ts
+new OrbiClient(options: OrbiClientOptions)
+```
+
+### Options
+
+| Option    | Type                      | Required | Description                                            |
+| --------- | ------------------------- | -------- | ------------------------------------------------------ |
+| `network` | `'mainnet' \| 'testnet'`  | Yes      | Which Stellar network this client signs transactions for. |
+
+The client does **not** take an API key or backend URL — Orbi runs entirely on
+the client and never sponsors fees. See [Core Concepts](/concepts) for why.
+
+## Methods
+
+| Method                                            | Returns                      | Description                                  |
+| ------------------------------------------------- | ---------------------------- | -------------------------------------------- |
+| [`connect()`](/api-reference/connect)             | `Promise<void>`              | Run the passkey flow and connect a wallet.   |
+| [`getAddress()`](/api-reference/get-address)      | `string \| null`             | The connected wallet's `G...` address.       |
+| [`signTransaction()`](/api-reference/sign-transaction) | `Promise<{ signedXdr }>` | Get a transaction approved and signed.       |
+| [`disconnect()`](/api-reference/disconnect)       | `void`                       | Forget the current connection.               |
+
+## Lifecycle
+
+```ts
+const orbi = new OrbiClient({ network: 'mainnet' })
+
+await orbi.connect()              // user signs in with passkey
+const address = orbi.getAddress() // "G..."
+
+const { signedXdr } = await orbi.signTransaction({ xdr, walletAddress: address })
+
+orbi.disconnect()                 // when the user signs out
+```

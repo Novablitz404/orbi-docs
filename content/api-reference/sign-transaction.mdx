@@ -1,0 +1,57 @@
+---
+title: signTransaction()
+description: Get a Stellar transaction approved with a passkey and signed.
+---
+
+import { Callout } from 'nextra/components'
+
+# signTransaction()
+
+Shows the user a biometric approval prompt for a transaction you've built, and
+returns the signed XDR. Orbi **signs only** — submitting to the network is up to
+you.
+
+```ts
+signTransaction(params: SignTransactionParams): Promise<SignTransactionResult>
+```
+
+## Parameters
+
+| Param           | Type     | Required | Description                                                   |
+| --------------- | -------- | -------- | ------------------------------------------------------------- |
+| `xdr`           | `string` | Yes      | The unsigned transaction, as a base64 XDR string.             |
+| `walletAddress` | `string` | Yes      | The `G...` address that should sign — usually `getAddress()`. |
+
+## Returns
+
+`Promise<{ signedXdr: string }>` — the signed transaction as base64 XDR, ready to
+submit.
+
+| Field       | Type     | Description                              |
+| ----------- | -------- | ---------------------------------------- |
+| `signedXdr` | `string` | The signed transaction envelope (XDR).   |
+
+## Example
+
+```ts
+// Build a transaction (see the Send a payment guide), then:
+const { signedXdr } = await orbi.signTransaction({
+  xdr: tx.toXDR(),
+  walletAddress: orbi.getAddress(),
+})
+
+// Submit it yourself
+const signed = TransactionBuilder.fromXDR(signedXdr, Networks.PUBLIC)
+await server.submitTransaction(signed)
+```
+
+<Callout type="info">
+  Build the transaction for the **same network** you passed to `OrbiClient`. A
+  testnet client cannot sign a mainnet transaction, and vice versa.
+</Callout>
+
+## Errors
+
+The promise rejects if the user declines the biometric prompt or the passkey
+flow is cancelled. Treat a rejection as "the user said no" and leave their funds
+untouched.

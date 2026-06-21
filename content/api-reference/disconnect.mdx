@@ -1,0 +1,31 @@
+---
+title: disconnect()
+description: Forget the current Orbi connection.
+---
+
+# disconnect()
+
+Disconnects the current wallet session. After this call,
+[`getAddress()`](/api-reference/get-address) returns `null` until the user
+[`connect()`](/api-reference/connect)s again.
+
+```ts
+disconnect(): void
+```
+
+## Returns
+
+`void` — runs synchronously.
+
+## Example
+
+```ts
+function signOut() {
+  orbi.disconnect()
+  // route the user back to your connect screen
+}
+```
+
+Use this to implement a "sign out" action. It clears Orbi's local session for
+your dApp; it does **not** delete the user's passkey or their on-chain account —
+they can reconnect at any time.

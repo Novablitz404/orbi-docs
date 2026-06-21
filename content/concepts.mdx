@@ -1,0 +1,59 @@
+---
+title: Core Concepts
+description: How Orbi accounts, passkeys, and the sign-only model work.
+---
+
+import { Callout } from 'nextra/components'
+
+# Core Concepts
+
+## Passkeys, not seed phrases
+
+Orbi authenticates users with **passkeys** (WebAuthn credentials) instead of
+seed phrases or passwords. The credential is created and stored by the user's
+device and synced through iCloud Keychain or Google Password Manager, so it
+survives a lost phone without anything to write down.
+
+When you call [`connect()`](/api-reference/connect), Orbi runs this passkey flow
+and resolves once the user has a wallet ready.
+
+## Standard Stellar accounts
+
+An Orbi wallet is a regular Stellar **`G...` account** — the same kind of account
+any Stellar tool understands. That means:
+
+- You can look it up on any Horizon instance or block explorer.
+- It holds XLM and any Stellar asset (USDC and other trustlines) directly.
+- Transactions cost the normal network fee (`BASE_FEE`, 100 stroops). There is no
+  Orbi markup and no fee sponsorship — the account pays its own fees.
+
+<Callout type="info">
+  Because it's a normal account, the user owns it fully. Orbi cannot freeze,
+  move, or recover funds on their behalf — only the passkey can authorize a
+  transaction.
+</Callout>
+
+## Orbi signs; you submit
+
+Orbi follows a strict **sign-only** model:
+
+1. **You** build the transaction (as XDR) and decide what it does.
+2. **Orbi** shows the user a biometric approval prompt and signs the XDR.
+3. **You** submit the signed XDR to the network.
+
+The user's private key never leaves the Orbi-hosted passkey context, so it's
+never exposed to your dApp. Orbi never broadcasts transactions itself — keeping
+submission in your hands means you control retries, fee bumps, and error
+handling.
+
+## Networks
+
+`OrbiClient` is scoped to a single network, chosen at construction:
+
+| Network     | Value         | Use for                     |
+| ----------- | ------------- | --------------------------- |
+| Mainnet     | `'mainnet'`   | Production / real funds     |
+| Testnet     | `'testnet'`   | Development and testing     |
+
+Build your transactions for the **same** network passphrase you pass to the
+client, or signing/submission will fail.

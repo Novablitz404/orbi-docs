@@ -1,0 +1,105 @@
+---
+title: Send a Payment
+description: Build, sign, and submit a Stellar payment with Orbi end to end.
+---
+
+import { Steps } from 'nextra/components'
+
+# Send a Payment
+
+This guide walks through the complete flow: connect a wallet, build a payment,
+have Orbi sign it, and submit it to Stellar.
+
+```bash npm2yarn
+npm install @orbi-wallet/sdk @stellar/stellar-sdk
+```
+
+<Steps>
+
+### Set up the clients
+
+```ts
+import { OrbiClient } from '@orbi-wallet/sdk'
+import { Horizon, Networks } from '@stellar/stellar-sdk'
+
+const NETWORK = 'testnet'
+const orbi = new OrbiClient({ network: NETWORK })
+const server = new Horizon.Server('https://horizon-testnet.stellar.org')
+const networkPassphrase = Networks.TESTNET
+```
+
+### Connect
+
+```ts
+await orbi.connect()
+const address = orbi.getAddress()
+if (!address) throw new Error('Not connected')
+```
+
+### Build the payment
+
+Load the sender's account for its sequence number, then build a payment
+operation. The fee is the flat network `BASE_FEE` — Orbi adds no markup.
+
+```ts
+import { TransactionBuilder, Operation, Asset, BASE_FEE } from '@stellar/stellar-sdk'
+
+const account = await server.loadAccount(address)
+
+const tx = new TransactionBuilder(account, {
+  fee: BASE_FEE,
+  networkPassphrase,
+})
+  .addOperation(
+    Operation.payment({
+      destination: 'GDESTINATION...',
+      asset: Asset.native(), // XLM; use new Asset(code, issuer) for other tokens
+      amount: '10',
+    }),
+  )
+  .setTimeout(180)
+  .build()
+```
+
+### Sign with Orbi
+
+```ts
+const { signedXdr } = await orbi.signTransaction({
+  xdr: tx.toXDR(),
+  walletAddress: address,
+})
+```
+
+### Submit
+
+```ts
+const signed = TransactionBuilder.fromXDR(signedXdr, networkPassphrase)
+
+try {
+  const result = await server.submitTransaction(signed)
+  console.log('Success:', result.hash)
+} catch (err) {
+  // Inspect err.response.data.extras.result_codes for the failure reason
+  console.error('Submit failed', err)
+}
+```
+
+</Steps>
+
+## Sending a non-native asset
+
+To send USDC or any other Stellar token, swap the `asset` for an issued asset.
+The destination must already trust that asset.
+
+```ts
+import { Asset } from '@stellar/stellar-sdk'
+
+const usdc = new Asset(
+  'USDC',
+  'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+)
+
+Operation.payment({ destination, asset: usdc, amount: '25' })
+```
+
+Everything else — connect, sign, submit — is identical.
