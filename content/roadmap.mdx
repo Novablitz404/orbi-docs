@@ -1,0 +1,104 @@
+---
+title: Roadmap
+description: Features Orbi plans to ship — including dApp-sponsored gasless transactions.
+---
+
+import { Callout } from 'nextra/components'
+
+# Roadmap
+
+What's coming to Orbi and the SDK. This page is a preview of planned work, not a
+commitment to dates or final APIs.
+
+<Callout type="warning">
+  **None of the features on this page are available yet.** Code samples below are
+  illustrative and the final API may change. Everything in the
+  [API Reference](/api-reference) is what ships today.
+</Callout>
+
+## Gasless transactions (dApp-sponsored fees)
+
+Today, an Orbi account pays its own network fee (the flat `BASE_FEE`) on every
+transaction. We're working on **fee sponsorship** so a dApp can cover that fee on
+its users' behalf — the user signs, your app (or Orbi's relayer) pays. This makes
+it possible to onboard users who hold **zero XLM** and let them transact
+immediately.
+
+Under the hood this is expected to use Stellar **fee-bump transactions**: the
+user signs the inner transaction with their passkey, and a sponsor account wraps
+it and pays the fee.
+
+```ts
+// ⚠️ Illustrative — not available yet
+const { signedXdr } = await orbi.signTransaction({
+  xdr,
+  walletAddress: address,
+  sponsor: true, // dApp/relayer covers the network fee
+})
+```
+
+Planned pieces:
+
+- **Sponsored fees** — cover the per-transaction network fee for your users.
+- **Sponsored reserves** — cover the base reserve and trustline reserves so a
+  brand-new account can be created and funded without the user holding XLM first.
+- **Spend controls** — per-app budgets and rate limits so sponsorship can't be
+  drained.
+
+## Built-in swaps in the SDK
+
+The Orbi app already swaps between Stellar assets using on-chain path payments.
+We plan to expose this through the SDK so your dApp can offer in-wallet swaps
+directly:
+
+```ts
+// ⚠️ Illustrative — not available yet
+const quote = await orbi.getSwapQuote({ from: 'XLM', to: 'USDC', amount: '50' })
+const { signedXdr } = await orbi.swap(quote)
+```
+
+## Fiat on-ramp
+
+We're planning a built-in **on-ramp** so users can buy crypto with a card or bank
+transfer and have it land directly in their Orbi wallet — no separate exchange,
+no manual address copying. The goal is to turn the empty zero-balance state into
+a funded wallet in a few taps, then expose it through the SDK so your dApp can
+trigger the same flow:
+
+```ts
+// ⚠️ Illustrative — not available yet
+await orbi.onRamp({ asset: 'USDC', amount: '100' })
+```
+
+A matching **off-ramp** (cash out to a card or bank) is planned to follow.
+
+## Standard dApp connection (WalletConnect)
+
+Right now you integrate Orbi by importing the SDK directly. We're planning support
+for a **standard wallet-connection protocol** (WalletConnect-style), so any
+compatible dApp can let users pick Orbi without a bespoke integration.
+
+## Account recovery in the SDK
+
+The Orbi app supports recovering access to a wallet. We plan to surface
+**recovery and multi-device** flows through the SDK so integrators can guide
+users who switch or lose a device.
+
+## Batch & session approvals
+
+To cut down on repeated biometric prompts, we're exploring:
+
+- **Batch operations** — approve a multi-operation transaction in one prompt.
+- **Session approvals** — short-lived, user-scoped permissions for low-risk
+  actions, so not every interaction needs a fresh Face ID / Touch ID prompt.
+
+## More networks & assets
+
+Broader asset metadata, more network options, and richer balance/price data
+exposed through the SDK.
+
+---
+
+Have a feature request or want early access to gasless? Open an issue on the
+[SDK repository](https://npmjs.com/package/@orbi-wallet/sdk) or reach out to the
+Orbi team.

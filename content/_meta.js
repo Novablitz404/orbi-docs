@@ -4,4 +4,5 @@ export default {
   concepts: 'Core Concepts',
   'api-reference': 'API Reference',
   guides: 'Guides',
+  roadmap: 'Roadmap',
 }
